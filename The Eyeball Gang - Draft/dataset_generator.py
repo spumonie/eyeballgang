@@ -11,27 +11,38 @@ import numpy as np
 
 df = sbim.load_annotation()
 df_all = df
-# I haven't tested if this code works in this environment. So far everything else works. 
-# but i set it up so the evaluator can just ignore this if he wants to and use
-# an already generated csv.
 
-# Note, this data set takes a rather long time to generate, so we instead urge you to 
+# Note, this dataset takes a rather long time to generate, so we instead urge you to 
 # just use the CSV file which is contained in 'outputs/RGB_mean_all_nosplit.csv'
 # it is just the data set as generated according to the method below.
-# if you want to do it, set the tag "generate_my_self" to True and check the 
-# outputs file fore RGB_mean_all_nosplit.csv. It will be automatically used by 
-# the model_generator file if it was generated. 
+# if you want to do it:
+    #1) copy all of the eye images to the "images" folder or copy a any folder  
+    # rename it images. 
+    #2) set the tag "generate_my_self" to True
+    #3) note that the csv file will be saved to outputs/RGB_mean_all_nosplit.csv
+    #4) It will be automatically used by the model_generator file if it was generated. 
+
+# Description: We convert each image into a 3 element vector where each element
+# Represents a color channel and the value at the element the average value for that
+# color channel. 
+
+# Each image is cropped down to the eye to reduce black background
+# and then the average is taken for each color channel.
+# tThis information is stored in a pd dataframe which distinguishes between left
+# and right eye and then consolidated into a new dataframe which doesn't make this
+# disinction.   
+
 generate_my_self=False
 
 if generate_my_self:
-    #remove".head(20)" for generating entire dataset, this is just a test ammount
+    #remove"" for generating entire dataset, this is just a test ammount
     dataset = pd.DataFrame(columns=['Age', 'LR', 'LG', 'LB', 'RR', 'RG', 'RB'])
-    for i in range(len(df_all.head(20))):
-        sample = df_all.head(20).iloc[i]
+    for i in range(len(df_all)):
+        sample = df_all.iloc[i]
         sample = sample[:1] # pick ID and age only
     
         # store the info of the left eye
-        img = sbim.load_left_eye_image(class_=None, df = df_all.head(20), i=i)
+        img = sbim.load_left_eye_image(class_=None, df = df_all, i=i)
         img = np.array(img)
         img = sbim.cropToFundus2(img)
         # store the averaged number for each color channel
@@ -40,7 +51,7 @@ if generate_my_self:
             sample['L'+ colors[j]] = img[:, :, j].mean()
     
         # same for the right eye
-        img = sbim.load_right_eye_image(class_=None, df = df_all.head(20), i=i)
+        img = sbim.load_right_eye_image(class_=None, df = df_all, i=i)
         img = np.array(img)
         img = sbim.cropToFundus2(img)
         colors =  ['R', 'G', 'B']

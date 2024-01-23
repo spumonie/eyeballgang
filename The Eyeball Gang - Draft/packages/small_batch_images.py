@@ -9,23 +9,26 @@ classes = ["N", "D", "G", "C", "A", "H", "M", "O"]
 classes_name = ["normal", "diabetes", "glaucoma", "cataract", "AMD", "hypertensi\
     on", "myopia", "other diseases"]
 
+# loads the non-image data
 def load_annotation():
     df = pd.read_csv(os.path.join(script_dir, "../annotations.csv"), index_col=0)
     return df
 
+# loads left eye images
 def load_left_eye_image(df, i, class_=None ):
     if class_==None:
         return Image.open(os.path.join(script_dir, "../images/{}").format(df.Left_Fundus.values[i]))
     image = Image.open(os.path.join(script_dir, "../images/{}").format(df[df[class_] == 1].Left_Fundus.values[i]))
     return image
 
+#loads right eye images
 def load_right_eye_image(df,i, class_=None):
     if class_==None:
         return Image.open(os.path.join(script_dir, "../images/{}").format(df.Right_Fundus.values[i]))
     image = Image.open(os.path.join(script_dir, "../images/{}").format(df[df[class_] == 1].Right_Fundus.values[i]))
     return image 
 
-#For working with Numpyarrays    
+#For working with Numpyarrays to crop image down to the eye itself (minimise black background)   
 def cropToFundus2(x):
     max_ = x.max(axis=2)
     valid_columns = np.where(max_.max(axis=0) > 30)[0]
@@ -34,7 +37,7 @@ def cropToFundus2(x):
     x = x[:, valid_columns, :]
     return x
 
-# same as CropToFundus2 but with added line to take open image as input
+# Similar to CropToFundus2 but with added line to take opened image as input
 # and lines to return rbg_vector of image with proper shape for the LR model
 def singleImageProcessor(x):
     x = np.array(x)
@@ -46,12 +49,3 @@ def singleImageProcessor(x):
     rbg_vector= np.array([x[:,:,0].mean(),x[:,:,1].mean(),x[:,:,2].mean()])
     rbg_vector = np.reshape(rbg_vector, (1, -1))
     return rbg_vector
-    
-
-"""if __name__ == "__main__":
-    df = load_annotation()
-    print("Head of the annotations")
-    print(df.head())
-    image = load_left_eye_image(df, class_="N", i = 0)
-    image.thumbnail((200,200))
-    image.save("a_normal_left_eye.jpg", "JPEG")"""
